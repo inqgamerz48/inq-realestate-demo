@@ -13,16 +13,26 @@ export async function GET(request: Request) {
         const { searchParams } = new URL(request.url);
         const category = searchParams.get('category');
         const featured = searchParams.get('featured');
+        const search = searchParams.get('search');
         
         let items;
-        if (category) {
+        
+        // Search functionality
+        if (search) {
+            const allProps = await db.select().from(properties);
+            items = allProps.filter(p => 
+                p.name.toLowerCase().includes(search.toLowerCase()) ||
+                p.location.toLowerCase().includes(search.toLowerCase())
+            );
+        } else if (category) {
             items = await db.select().from(properties).where(eq(properties.category, category));
         } else if (featured) {
             items = await db.select().from(properties).where(eq(properties.featured, parseInt(featured)));
         } else {
             items = await db.select().from(properties);
         }
-        return NextResponse.json(items);
+        
+        return NextResponse.json(items || []);
     } catch (error) {
         console.error('API Error:', error);
         return NextResponse.json({ error: 'Failed to fetch properties' }, { status: 500 });
