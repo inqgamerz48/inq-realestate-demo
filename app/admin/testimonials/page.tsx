@@ -70,7 +70,7 @@ export default function TestimonialsPage() {
       const res = await fetch('/api/testimonials', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: item.id, ...item, active: !item.active })
+        body: JSON.stringify({ ...item, active: !item.active })
       })
 
       if (res.ok) {
