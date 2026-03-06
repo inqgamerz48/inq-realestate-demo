@@ -1,14 +1,17 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-bg: #0f172a;
-  --color-brand-surface: #1e293b;
-  --color-brand-border: #334155;
-  --color-brand-gold: #f59e0b;
-  --color-brand-gold2: #fbbf24;
-  --color-brand-cream: #f1f5f9;
-  --color-brand-muted: #94a3b8;
-  --color-brand-red: #ef4444;
+  --color-brand-bg: #f8f6f2;
+  --color-brand-white: #ffffff;
+  --color-brand-surface: #f0ede8;
+  --color-brand-border: #e2ddd6;
+  --color-brand-navy: #1a2332;
+  --color-brand-navy2: #243042;
+  --color-brand-accent: #c8965a;
+  --color-brand-accent2: #b07d42;
+  --color-brand-text: #2d3748;
+  --color-brand-muted: #7a8394;
+  --color-brand-light: #a8b2bf;
 }
 
 * {
@@ -22,8 +25,24 @@ html {
 }
 
 body {
-  background-color: var(--color-brand-bg);
-  color: var(--color-brand-cream);
-  font-family: system-ui, sans-serif;
+  font-family: 'DM Sans', sans-serif;
+  background: var(--color-brand-bg);
+  color: var(--color-brand-text);
   overflow-x: hidden;
+}
+
+.font-display {
+  font-family: 'DM Serif Display', serif;
+}
+
+/* Scroll reveal animation */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
 }
