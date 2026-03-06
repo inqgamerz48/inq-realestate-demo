@@ -46,17 +46,23 @@ export default function Home() {
   useEffect(() => {
     fetch('/api/properties')
       .then(res => res.json())
-      .then(data => setProperties(data))
+      .then(data => {
+        if (Array.isArray(data)) setProperties(data);
+      })
       .catch(console.error);
 
     fetch('/api/agents')
       .then(res => res.json())
-      .then(data => setAgents(data))
+      .then(data => {
+        if (Array.isArray(data)) setAgents(data);
+      })
       .catch(console.error);
 
     fetch('/api/testimonials')
       .then(res => res.json())
-      .then(data => setTestimonials(data.filter((t: Testimonial) => t.active)))
+      .then(data => {
+        if (Array.isArray(data)) setTestimonials(data.filter((t: Testimonial) => t.active));
+      })
       .catch(console.error);
   }, []);
 
