@@ -1,21 +1,19 @@
-import type { Metadata } from 'next';
-import './globals.css';
+import type { Metadata } from 'next'
+import './globals.css'
 
 export const metadata: Metadata = {
   title: 'Meridian Properties — Premium Real Estate',
-  description: 'Find your dream home with Meridian Properties.',
-};
+  description: 'NYC\'s most trusted real estate advisors. Find your perfect home.',
+}
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
     <html lang="en">
-      <body className="antialiased">
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
-  );
+  )
 }

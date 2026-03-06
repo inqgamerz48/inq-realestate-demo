@@ -1,47 +1,84 @@
-import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { agents } from '@/lib/schema';
-import { eq, asc } from 'drizzle-orm';
-
-function checkAuth(request: Request): boolean {
-    const authHeader = request.headers.get('authorization');
-    return authHeader === `Bearer ${process.env.ADMIN_API_TOKEN}`;
-}
+import { NextRequest, NextResponse } from 'next/server'
+import { sql } from '@/lib/db'
+import '@/lib/schema'
 
 export async function GET() {
-    try {
-        const items = await db.select().from(agents).orderBy(asc(agents.sortOrder));
-        return NextResponse.json(items);
-    } catch (error) {
-        console.error('API Error:', error);
-        return NextResponse.json({ error: 'Failed to fetch agents' }, { status: 500 });
-    }
+  try {
+    const result = await sql`SELECT * FROM agents ORDER BY created_at DESC`
+    return NextResponse.json(result)
+  } catch (error) {
+    console.error('Agents GET error:', error)
+    return NextResponse.json({ error: 'Failed to fetch agents' }, { status: 500 })
+  }
 }
 
-export async function POST(request: Request) {
-    if (!checkAuth(request)) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+export async function POST(request: NextRequest) {
+  try {
+    const cookieHeader = request.headers.get('cookie')
+    if (!cookieHeader?.includes('admin_session=1')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    try {
-        const body = await request.json();
-        const { name, role, photo_url, total_sold, total_clients, sort_order } = body;
-        
-        if (!name || !role || !photo_url || !total_sold || !total_clients) {
-            return NextResponse.json({ error: 'name, role, photo_url, total_sold, and total_clients are required' }, { status: 400 });
-        }
-        
-        const result = await db.insert(agents).values({
-            name,
-            role,
-            photoUrl: photo_url,
-            totalSold: total_sold,
-            totalClients: total_clients,
-            sortOrder: sort_order || 0
-        }).returning({ id: agents.id });
-        
-        return NextResponse.json({ id: result[0].id, message: 'Agent created' }, { status: 201 });
-    } catch (error) {
-        console.error('API Error:', error);
-        return NextResponse.json({ error: 'Failed to create agent' }, { status: 500 });
+
+    const body = await request.json()
+    const { name, role, photo_url, total_sold, total_clients } = body
+
+    const result = await sql`
+      INSERT INTO agents (name, role, photo_url, total_sold, total_clients)
+      VALUES (${name}, ${role}, ${photo_url}, ${total_sold}, ${total_clients})
+      RETURNING *
+    `
+
+    return NextResponse.json(result[0])
+  } catch (error) {
+    console.error('Agents POST error:', error)
+    return NextResponse.json({ error: 'Failed to create agent' }, { status: 500 })
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    const cookieHeader = request.headers.get('cookie')
+    if (!cookieHeader?.includes('admin_session=1')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const body = await request.json()
+    const { id, name, role, photo_url, total_sold, total_clients } = body
+
+    const result = await sql`
+      UPDATE agents 
+      SET name = ${name}, role = ${role}, photo_url = ${photo_url}, 
+          total_sold = ${total_sold}, total_clients = ${total_clients}
+      WHERE id = ${id}
+      RETURNING *
+    `
+
+    return NextResponse.json(result[0])
+  } catch (error) {
+    console.error('Agents PUT error:', error)
+    return NextResponse.json({ error: 'Failed to update agent' }, { status: 500 })
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const cookieHeader = request.headers.get('cookie')
+    if (!cookieHeader?.includes('admin_session=1')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+
+    if (!id) {
+      return NextResponse.json({ error: 'ID required' }, { status: 400 })
+    }
+
+    await sql`DELETE FROM agents WHERE id = ${parseInt(id)}`
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Agents DELETE error:', error)
+    return NextResponse.json({ error: 'Failed to delete agent' }, { status: 500 })
+  }
 }
