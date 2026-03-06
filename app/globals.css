@@ -1,31 +1,14 @@
 @import "tailwindcss";
 
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
-
 :root {
   --bg: #f8f6f2;
   --surface: #ffffff;
   --surface-alt: #f0ede8;
   --border: #e2ddd6;
   --navy: #1a2332;
-  --navy2: #243042;
   --accent: #c8965a;
-  --accent2: #b07d42;
   --text: #2d3748;
   --muted: #7a8394;
-  --light: #a8b2bf;
-}
-
-.dark {
-  --bg: #0f0f0f;
-  --surface: #1a1a1a;
-  --surface-alt: #252525;
-  --border: #333333;
-  --navy: #c8965a;
-  --navy2: #ddb76a;
-  --text: #f5f5f5;
-  --muted: #a0a0a0;
-  --light: #606060;
 }
 
 * {
@@ -34,26 +17,7 @@
   padding: 0;
 }
 
-html {
-  scroll-behavior: smooth;
-}
-
 body {
-  font-family: 'DM Sans', sans-serif;
   background: var(--bg);
   color: var(--text);
-  transition: background 0.3s, color 0.3s;
-}
-
-.font-display {
-  font-family: 'DM Serif Display', serif;
-}
-
-@keyframes marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-
-.animate-marquee {
-  animation: marquee 30s linear infinite;
 }
