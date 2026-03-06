@@ -4,8 +4,9 @@ import { CheckCircle, XCircle, LogOut, Plus, Edit2, Trash2, Home, Users, Message
 
 type Tab = 'properties' | 'agents' | 'testimonials' | 'inquiries';
 
+const ADMIN_TOKEN = process.env.NEXT_PUBLIC_ADMIN_TOKEN || '';
+
 export default function AdminDashboard() {
-    const [token, setToken] = useState('');
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [activeTab, setActiveTab] = useState<Tab>('properties');
     const [loading, setLoading] = useState(false);
@@ -20,70 +21,47 @@ export default function AdminDashboard() {
     const [editItem, setEditItem] = useState<any>(null);
     const [modalType, setModalType] = useState('');
 
+    const authHeaders = {
+        'Authorization': `Bearer ${ADMIN_TOKEN}`,
+        'Content-Type': 'application/json'
+    };
+
     const fetchData = async () => {
         setLoading(true);
         try {
             const [propRes, agentsRes, testiRes, inqRes] = await Promise.all([
-                fetch('/api/properties'),
-                fetch('/api/agents'),
-                fetch('/api/testimonials'),
-                fetch('/api/inquiries')
+                fetch('/api/properties', { headers: authHeaders }),
+                fetch('/api/agents', { headers: authHeaders }),
+                fetch('/api/testimonials', { headers: authHeaders }),
+                fetch('/api/inquiries', { headers: authHeaders })
             ]);
+            
+            if (!propRes.ok || !agentsRes.ok || !testiRes.ok || !inqRes.ok) {
+                throw new Error('Unauthorized');
+            }
+            
             setProperties(await propRes.json());
             setAgents(await agentsRes.json());
             setTestimonials(await testiRes.json());
             setInquiries(await inqRes.json());
+            setIsAuthenticated(true);
         } catch (err) {
             console.error(err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const fetchWithAuth = async (authToken: string) => {
-        setLoading(true);
-        setError('');
-        try {
-            const res = await fetch('/api/inquiries', {
-                headers: { 'Authorization': `Bearer ${authToken}` }
-            });
-            if (!res.ok) throw new Error('Invalid Admin Token');
-            const data = await res.json();
-            setInquiries(data);
-            setIsAuthenticated(true);
-            setToken(authToken);
-            localStorage.setItem('adminToken', authToken);
-            await fetchData();
-        } catch (err: any) {
-            setError(err.message);
-            setIsAuthenticated(false);
-            localStorage.removeItem('adminToken');
+            setError('Access denied. Invalid admin token.');
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        const savedToken = localStorage.getItem('adminToken');
-        if (savedToken) fetchWithAuth(savedToken);
+        fetchData();
     }, []);
-
-    const handleLogin = (e: React.FormEvent) => {
-        e.preventDefault();
-        fetchWithAuth(token);
-    };
-
-    const handleLogout = () => {
-        localStorage.removeItem('adminToken');
-        setIsAuthenticated(false);
-        setToken('');
-    };
 
     const updateStatus = async (type: string, id: number, status: string) => {
         try {
             const res = await fetch(`/api/${type}/${id}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: authHeaders,
                 body: JSON.stringify({ status })
             });
             if (res.ok) {
@@ -120,7 +98,7 @@ export default function AdminDashboard() {
         try {
             await fetch(url, {
                 method,
-                headers: { 'Content-Type': 'application/json' },
+                headers: authHeaders,
                 body: JSON.stringify(data)
             });
             closeModal();
@@ -133,37 +111,26 @@ export default function AdminDashboard() {
     const handleDelete = async (type: string, id: number) => {
         if (!confirm('Delete this item?')) return;
         try {
-            await fetch(`/api/${type}/${id}`, { method: 'DELETE' });
+            await fetch(`/api/${type}/${id}`, { 
+                method: 'DELETE',
+                headers: authHeaders 
+            });
             fetchData();
         } catch (err) {
             console.error(err);
         }
     };
 
-    if (!isAuthenticated) {
+    if (!isAuthenticated && !ADMIN_TOKEN) {
         return (
             <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center">
-                <form onSubmit={handleLogin} className="bg-slate-800 p-10 w-full max-w-md rounded-lg border border-slate-700">
+                <div className="bg-slate-800 p-10 w-full max-w-md rounded-lg border border-slate-700">
                     <h1 className="text-3xl font-bold mb-2 text-amber-400 text-center">Meridian Properties</h1>
                     <p className="text-center text-slate-400 text-sm mb-8">Admin Portal</p>
-
-                    {error && <div className="mb-4 text-red-400 text-sm text-center bg-red-900/20 p-2 border border-red-800">{error}</div>}
-
-                    <div className="mb-6">
-                        <label className="block text-xs uppercase text-slate-400 mb-2">Access Token</label>
-                        <input
-                            type="password"
-                            value={token}
-                            onChange={e => setToken(e.target.value)}
-                            className="w-full bg-slate-900 border border-slate-700 text-white p-3 focus:outline-none focus:border-amber-400"
-                            placeholder="Enter secure token..."
-                            required
-                        />
+                    <div className="text-red-400 text-sm text-center bg-red-900/20 p-4 border border-red-800">
+                        Admin token not configured. Please set NEXT_PUBLIC_ADMIN_TOKEN in your environment variables.
                     </div>
-                    <button type="submit" disabled={loading} className="w-full bg-amber-400 text-slate-900 font-bold py-3 uppercase text-sm hover:bg-amber-300 transition-colors">
-                        {loading ? 'Authenticating...' : 'Enter Console'}
-                    </button>
-                </form>
+                </div>
             </div>
         );
     }
@@ -175,8 +142,8 @@ export default function AdminDashboard() {
                     <h1 className="text-2xl font-bold text-amber-400">Meridian Properties</h1>
                     <span className="text-xs text-slate-400 uppercase">Management Console</span>
                 </div>
-                <button onClick={handleLogout} className="flex items-center gap-2 text-xs uppercase text-slate-400 hover:text-red-400 transition-colors">
-                    <LogOut size={14} /> Disconnect
+                <button onClick={() => window.location.reload()} className="flex items-center gap-2 text-xs uppercase text-slate-400 hover:text-red-400 transition-colors">
+                    <LogOut size={14} /> Refresh
                 </button>
             </header>
 

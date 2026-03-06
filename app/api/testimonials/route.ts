@@ -3,6 +3,11 @@ import { db } from '@/lib/db';
 import { testimonials } from '@/lib/schema';
 import { eq, desc } from 'drizzle-orm';
 
+function checkAuth(request: Request): boolean {
+    const authHeader = request.headers.get('authorization');
+    return authHeader === `Bearer ${process.env.ADMIN_API_TOKEN}`;
+}
+
 export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
@@ -22,6 +27,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+    if (!checkAuth(request)) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     try {
         const body = await request.json();
         const { name, initials, info, rating, text } = body;

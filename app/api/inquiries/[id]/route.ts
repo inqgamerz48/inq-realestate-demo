@@ -3,7 +3,15 @@ import { db } from '@/lib/db';
 import { inquiries } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
 
+function checkAuth(request: Request): boolean {
+    const authHeader = request.headers.get('authorization');
+    return authHeader === `Bearer ${process.env.ADMIN_API_TOKEN}`;
+}
+
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+    if (!checkAuth(request)) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     try {
         const { id } = await params;
         const item = await db.select().from(inquiries).where(eq(inquiries.id, parseInt(id)));
@@ -20,6 +28,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+    if (!checkAuth(request)) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     try {
         const { id } = await params;
         const body = await request.json();
@@ -48,6 +59,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+    if (!checkAuth(request)) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     try {
         const { id } = await params;
         

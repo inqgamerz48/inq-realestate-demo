@@ -3,6 +3,11 @@ import { db } from '@/lib/db';
 import { agents } from '@/lib/schema';
 import { eq, asc } from 'drizzle-orm';
 
+function checkAuth(request: Request): boolean {
+    const authHeader = request.headers.get('authorization');
+    return authHeader === `Bearer ${process.env.ADMIN_API_TOKEN}`;
+}
+
 export async function GET() {
     try {
         const items = await db.select().from(agents).orderBy(asc(agents.sortOrder));
@@ -14,6 +19,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+    if (!checkAuth(request)) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     try {
         const body = await request.json();
         const { name, role, photo_url, total_sold, total_clients, sort_order } = body;

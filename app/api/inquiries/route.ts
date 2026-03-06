@@ -3,7 +3,15 @@ import { db } from '@/lib/db';
 import { inquiries } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
 
+function checkAuth(request: Request): boolean {
+    const authHeader = request.headers.get('authorization');
+    return authHeader === `Bearer ${process.env.ADMIN_API_TOKEN}`;
+}
+
 export async function GET(request: Request) {
+    if (!checkAuth(request)) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     try {
         const { searchParams } = new URL(request.url);
         const status = searchParams.get('status');
