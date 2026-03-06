@@ -57,8 +57,8 @@ export default function Home() {
     obs.current = new IntersectionObserver((entries) => {
       entries.forEach((e) => {
         if (e.isIntersecting) {
-          e.target.style.opacity = '1'
-          e.target.style.transform = 'translateY(0)'
+          (e.target as HTMLElement).style.opacity = '1'
+          (e.target as HTMLElement).style.transform = 'translateY(0)'
         }
       })
     }, { threshold: 0.1 })
