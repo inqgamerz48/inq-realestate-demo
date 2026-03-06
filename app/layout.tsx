@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Meridian Properties — Luxury Real Estate',
-  description: 'NYC\'s premier real estate advisory. Curating exceptional properties since 2006.',
+  title: 'Meridian Properties — Premium Real Estate',
+  description: 'Find your dream home with Meridian Properties.',
 };
 
 export default function RootLayout({
