@@ -68,7 +68,7 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
-    document.querySelectorAll('.prop-card,.agent-card,.tcard,.step,.why-point').forEach((el) => {
+    document.querySelectorAll<HTMLElement>('.prop-card,.agent-card,.tcard,.step,.why-point').forEach((el) => {
       el.style.opacity = '0'
       el.style.transform = 'translateY(24px)'
       el.style.transition = 'opacity 0.6s ease, transform 0.6s ease'
